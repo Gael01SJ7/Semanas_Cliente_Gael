@@ -1,0 +1,84 @@
+openapi: 3.0.0
+info:
+  title: EcoMarket API
+  version: 1.0.0
+  description: API para gestión de productos orgánicos
+
+servers:
+  - url: http://localhost:3000/api
+
+paths:
+  /products:
+    get:
+      summary: Listar productos
+      parameters:
+        - name: categoria
+          in: query
+          schema:
+            type: string
+        - name: productor_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de productos
+    post:
+      summary: Crear producto
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductoInput'
+      responses:
+        '201':
+          description: Producto creado
+
+  /products/{id}:
+    get:
+      summary: Ver producto
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Producto encontrado
+
+components:
+  schemas:
+    Producto:
+      type: object
+      properties:
+        id:
+          type: integer
+        nombre:
+          type: string
+        descripcion:
+          type: string
+        precio:
+          type: number
+          format: float
+        categoria:
+          type: string
+        productor_id:
+          type: integer
+        disponible:
+          type: boolean
+        creado_en:
+          type: string
+          format: date-time
+
+    ProductoInput:
+      allOf:
+        - $ref: '#/components/schemas/Producto'
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer

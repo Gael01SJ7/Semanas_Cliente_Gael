@@ -1,0 +1,15 @@
+{
+  "productos": [
+    { "id": 1, "nombre": "Laptop", "precio": 15000, "categoria": "tecnologia" },
+    { "id": 2, "nombre": "Audífonos", "precio": 800, "categoria": "tecnologia" }
+  ],
+  "categorias": [
+    { "id": 1, "nombre": "tecnologia" },
+    { "id": 2, "nombre": "hogar" }
+  ],
+  "perfil": {
+    "id": 1,
+    "nombre": "Christian",
+    "rol": "cliente"
+  }
+}

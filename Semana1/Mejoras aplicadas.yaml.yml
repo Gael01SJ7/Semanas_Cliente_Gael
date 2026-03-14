@@ -1,0 +1,154 @@
+# Mejoras aplicadas:
+# 1. Se agregaron ejemplos estructurados de error con campos code y message.
+# 2. Las respuestas exitosas ahora referencian el schema Producto para mayor consistencia.
+
+openapi: 3.0.3
+info:
+  title: EcoMarket API
+  description: API para productos orgánicos de productores locales.
+  version: 1.0.0
+
+servers:
+  - url: https://api.ecomarket.com/v1
+
+paths:
+  /productos:
+    get:
+      summary: Listar productos disponibles
+      parameters:
+        - name: categoria
+          in: query
+          schema:
+            type: string
+            enum: [frutas, verduras, lacteos, miel, conservas]
+        - name: productor_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Lista de productos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Producto"
+        "400":
+          description: Parámetros inválidos
+          content:
+            application/json:
+              example:
+                code: 400
+                message: "Categoría no válida"
+
+    post:
+      summary: Crear nuevo producto
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductoInput"
+      responses:
+        "201":
+          description: Producto creado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Producto"
+        "400":
+          description: Datos inválidos
+          content:
+            application/json:
+              example:
+                code: 400
+                message: "Precio inválido"
+        "401":
+          description: No autorizado
+          content:
+            application/json:
+              example:
+                code: 401
+                message: "Token requerido"
+
+  /productos/{id}:
+    get:
+      summary: Obtener detalle de producto
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Producto encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Producto"
+        "404":
+          description: Producto no encontrado
+          content:
+            application/json:
+              example:
+                code: 404
+                message: "Producto no existe"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Producto:
+      type: object
+      properties:
+        id:
+          type: integer
+        nombre:
+          type: string
+        descripcion:
+          type: string
+        precio:
+          type: number
+          format: float
+          multipleOf: 0.01
+        categoria:
+          type: string
+          enum: [frutas, verduras, lacteos, miel, conservas]
+        productor_id:
+          type: integer
+        disponible:
+          type: boolean
+        creado_en:
+          type: string
+          format: date-time
+
+    ProductoInput:
+      type: object
+      required:
+        - nombre
+        - precio
+        - categoria
+        - productor_id
+      properties:
+        nombre:
+          type: string
+        descripcion:
+          type: string
+        precio:
+          type: number
+          multipleOf: 0.01
+        categoria:
+          type: string
+          enum: [frutas, verduras, lacteos, miel, conservas]
+        productor_id:
+          type: integer
+        disponible:
+          type: boolean

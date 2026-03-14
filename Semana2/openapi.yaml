@@ -1,0 +1,274 @@
+openapi: 3.0.0
+info:
+  title: EcoMarket API
+  version: 1.1.0
+  description: API para gestión de productos orgánicos
+
+servers:
+  - url: http://localhost:3000/api
+
+paths:
+
+  # PRODUCTOS
+  /products:
+    get:
+      summary: Listar productos
+      parameters:
+        - name: categoria
+          in: query
+          schema:
+            type: string
+        - name: productor_id
+          in: query
+          schema:
+            type: integer
+        - name: nombre
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de productos
+
+    post:
+      summary: Crear producto
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductoInput'
+      responses:
+        '201':
+          description: Producto creado
+
+  /products/{id}:
+    get:
+      summary: Ver producto
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Producto encontrado
+        '404':
+          description: Producto no encontrado
+
+    put:
+      summary: Actualizar producto completo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductoInput'
+      responses:
+        '200':
+          description: Producto actualizado
+
+    patch:
+      summary: Actualizar parcialmente producto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                precio:
+                  type: number
+                  format: float
+      responses:
+        '200':
+          description: Producto actualizado parcialmente
+
+    delete:
+      summary: Eliminar producto
+      responses:
+        '204':
+          description: Producto eliminado
+
+ 
+  # PRODUCTORES
+  /productores:
+    get:
+      summary: Listar productores
+      responses:
+        '200':
+          description: Lista de productores
+
+    post:
+      summary: Crear productor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductorInput'
+      responses:
+        '201':
+          description: Productor creado
+
+  /productores/{id}:
+    get:
+      summary: Ver productor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Productor encontrado
+
+    put:
+      summary: Actualizar productor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductorInput'
+      responses:
+        '200':
+          description: Productor actualizado
+
+    delete:
+      summary: Eliminar productor
+      responses:
+        '409':
+          description: El productor tiene productos asociados
+
+  /productores/{id}/products:
+    get:
+      summary: Obtener productos de un productor
+      responses:
+        '200':
+          description: Lista de productos
+
+
+  # PEDIDOS
+  /pedidos:
+    get:
+      summary: Listar pedidos
+      responses:
+        '200':
+          description: Lista de pedidos
+
+    post:
+      summary: Crear pedido
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PedidoInput'
+      responses:
+        '201':
+          description: Pedido creado
+
+  /pedidos/{id}:
+    get:
+      summary: Ver pedido
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Pedido encontrado
+
+    delete:
+      summary: Cancelar pedido
+      responses:
+        '204':
+          description: Pedido eliminado
+
+components:
+
+  schemas:
+
+    Producto:
+      type: object
+      properties:
+        id:
+          type: integer
+        nombre:
+          type: string
+        descripcion:
+          type: string
+        precio:
+          type: number
+          format: float
+        categoria:
+          type: string
+        productor_id:
+          type: integer
+        disponible:
+          type: boolean
+        creado_en:
+          type: string
+          format: date-time
+
+    ProductoInput:
+      type: object
+      properties:
+        nombre:
+          type: string
+        descripcion:
+          type: string
+        precio:
+          type: number
+        categoria:
+          type: string
+        productor_id:
+          type: integer
+
+    Productor:
+      type: object
+      properties:
+        id:
+          type: integer
+        nombre:
+          type: string
+        contacto:
+          type: string
+
+    ProductorInput:
+      type: object
+      properties:
+        nombre:
+          type: string
+        contacto:
+          type: string
+
+    Pedido:
+      type: object
+      properties:
+        id:
+          type: integer
+        total:
+          type: number
+        estado:
+          type: string
+
+    PedidoInput:
+      type: object
+      properties:
+        productos:
+          type: array
+          items:
+            type: integer
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
