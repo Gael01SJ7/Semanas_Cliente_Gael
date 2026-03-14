@@ -4,18 +4,16 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 
 BASE_URL = "http://ecomarket.local/api/v1"
-TOKEN = "eyJ0eXAiO..."  # Reemplaza con tu token real
+TOKEN = "eyJ0eXAiO..." 
 INTERVALO_BASE = 5
 INTERVALO_MAX = 60
 TIMEOUT = 10
 
-# INTERFAZ OBSERVADOR 
 class Observador(ABC):
     @abstractmethod
     async def actualizar(self, inventario: dict):
         pass
 
-#  MONITOR INVENTARIO (Observable) 
 class MonitorInventario:
     def __init__(self):
         self._observadores = []
@@ -37,7 +35,7 @@ class MonitorInventario:
                 await obs.actualizar(inventario)
             except Exception as e:
                 print(f"Warning: observador {obs} falló: {e}")
-#consultar_inventario
+
     async def _consultar_inventario(self):
         headers = {"Authorization": f"Bearer {TOKEN}"}
         if self._ultimo_etag:
@@ -69,7 +67,6 @@ class MonitorInventario:
                         return None
         except (asyncio.TimeoutError, aiohttp.ClientError):
             print("Warning: No se pudo conectar, usando inventario simulado")
-            # Inventario simulado para prueba
             return {
                 "productos": [
                     {"id": "PROD-001", "nombre": "Arroz Premium 5kg", "stock": 45, "stock_minimo": 50, "status": "BAJO_MINIMO"},
@@ -78,7 +75,6 @@ class MonitorInventario:
                 "ultima_actualizacion": datetime.utcnow().isoformat() + "Z"
             }
 
-    #CICLO DE POLLING 
     async def iniciar(self):
         self._ejecutando = True
         while self._ejecutando:
@@ -90,7 +86,6 @@ class MonitorInventario:
     def detener(self):
         self._ejecutando = False
 
-#OBSERVADORES CONCRETOS
 class ModuloCompras(Observador):
     async def actualizar(self, inventario: dict):
         print("ModuloCompras: productos bajo mínimo")
@@ -118,7 +113,6 @@ class ModuloAlertas(Observador):
                     except aiohttp.ClientError as e:
                         print(f"Error al enviar alerta: {e}")
 
-# PUNTO DE ENTRADA
 async def main():
     monitor = MonitorInventario()
     monitor.suscribir(ModuloCompras())
