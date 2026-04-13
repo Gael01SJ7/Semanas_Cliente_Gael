@@ -1,0 +1,5 @@
+INFO:__main__:Cambio detectado: {'producto': 'Arroz', 'stock': 6}
+INFO:__main__:[UI] Mostrando datos: {'producto': 'Arroz', 'stock': 6}
+INFO:__main__:[LOG] Registro: {'producto': 'Arroz', 'stock': 6}
+...
+WARNING:__main__:[ALERTA] Stock bajo: {'producto': 'Arroz', 'stock': 2}

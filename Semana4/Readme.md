@@ -1,50 +1,37 @@
-# TRAZA MENTAL: CICLO DE SHORT POLLING CON ETAG (ECOMARKET)
-# Analogía:
-# Es como llamar a un restaurante para preguntar si tu pedido ya está listo.
-# La primera vez te dicen todo el estado del pedido y un código (ETag).
-# Después solo preguntas: “¿Sigue igual que la versión abc123?”.
-# Si no cambió, solo te responden que sigue igual y no repiten toda la información.
+# Semana 4 - Monitor de Inventario con Polling + Observer
+# Alumno: Christian Gael Ortiz Ramirez
+## Reto 1: Diagrama temporal
 
-# Consulta 1
-# Cliente envía:
-# GET /api/productos
-# Headers del cliente: ninguno especial
-# Servidor responde: 200 OK
-# Header: ETag: "abc123"
-# Datos transferidos: datos completos de productos (~2KB por ejemplo)
-# Acción del cliente: guarda el ETag "abc123" y muestra los productos
-# Intervalo de polling: 5 segundos
+El polling funciona como preguntar constantemente al servidor si hay cambios.
 
-# Consulta 2
-# Cliente envía:
-# GET /api/productos
-# Header: If-None-Match: "abc123"
-# Servidor responde: 304 Not Modified porque los datos no cambiaron
-# Datos transferidos: 0 bytes
-# Acción del cliente: no actualiza nada y sigue usando los mismos datos
-# Intervalo de polling: aumenta a 7.5 segundos
+Cliente → petición → servidor  
+Servidor → responde con datos o 304  
 
-# Consulta 3
-# Cliente envía:
-# GET /api/productos
-# Header: If-None-Match: "abc123"
-# Servidor responde: 304 Not Modified
-# Datos transferidos: 0 bytes
-# Acción del cliente: mantiene los datos actuales
-# Intervalo de polling: aumenta a aproximadamente 11 segundos
+Si no hay cambios (304), el cliente espera más tiempo (backoff).  
+Si hay cambios (200), actualiza y notifica a los observadores.
 
-# Consulta 4
-# Cliente envía:
-# GET /api/productos
-# Header: If-None-Match: "abc123"
-# Servidor responde: 200 OK
-# Header: ETag: "def456"
-# Motivo: alguien actualizó el precio de un producto
-# Datos transferidos: datos completos nuevamente (~2KB)
-# Acción del cliente: actualiza los productos y guarda el nuevo ETag "def456"
-# Intervalo de polling: vuelve a 5 segundos
+---
 
-# Por qué ETag es más eficiente
-# ETag funciona como una versión de los datos.
-# Si los datos no cambiaron, el servidor responde 304 y no envía toda la información otra vez.
-# Esto reduce tráfico de red y evita transferir datos innecesarios cuando no hay cambios.
+## Reto 3: Trade-offs
+
+| Característica | Polling | SSE |
+|--------------|--------|-----|
+| Tiempo real | No | Sí |
+| Consumo red | Alto | Bajo |
+| Complejidad | Baja | Media |
+| Escalabilidad | Limitada | Mejor |
+
+### Cálculo:
+500 usuarios * 1 request/segundo = 500 req/s
+
+Esto genera alta carga.
+
+### Mejora:
+Usar SSE o WebSockets para reducir peticiones.
+
+---
+
+## Desacoplamiento
+
+El patrón Observer permite que los observadores funcionen de forma independiente.  
+Si uno falla, los demás siguen funcionando.

@@ -1,0 +1,31 @@
+INFO:__main__:Iniciando receptor SSE con Observer...
+
+INFO:__main__:Evento SSE recibido: producto_actualizado
+INFO:__main__:[UI] Actualizando precio: {'id': 'P1', 'precio': 100}
+INFO:__main__:[AUDITORIA] Evento registrado: {'timestamp': '2026-04-12T22:51:23.730465', 'tipo': 'producto_actualizado', 'data': {'id': 'P1', 'precio': 100}}
+INFO:__main__:Evento SSE recibido: stock_critico
+WARNING:__main__:[ALERTA] Stock crítico: {'producto': 'Arroz', 'stock': 2}
+INFO:__main__:[AUDITORIA] Evento registrado: {'timestamp': '2026-04-12T22:51:24.731762', 'tipo': 'stock_critico', 'data': {'producto': 'Arroz', 'stock': 2}}
+INFO:__main__:Evento SSE recibido: nuevo_pedido
+INFO:__main__:[AUDITORIA] Evento registrado: {'timestamp': '2026-04-12T22:51:25.733667', 'tipo': 'nuevo_pedido', 'data': {'id': 'PED1', 'cliente': 'Ana'}}
+INFO:__main__:Evento SSE recibido: producto_actualizado
+INFO:__main__:[UI] Actualizando precio: {'id': 'P2', 'precio': 200}
+INFO:__main__:[AUDITORIA] Evento registrado: {'timestamp': '2026-04-12T22:51:26.735175', 'tipo': 'producto_actualizado', 'data': {'id': 'P2', 'precio': 200}}
+INFO:__main__:Evento SSE recibido: stock_critico
+WARNING:__main__:[ALERTA] Stock crítico: {'producto': 'Frijol', 'stock': 1}
+INFO:__main__:[AUDITORIA] Evento registrado: {'timestamp': '2026-04-12T22:51:27.736914', 'tipo': 'stock_critico', 'data': {'producto': 'Frijol', 'stock': 1}}
+INFO:__main__:Evento SSE recibido: nuevo_pedido
+INFO:__main__:[AUDITORIA] Evento registrado: {'timestamp': '2026-04-12T22:51:28.738730', 'tipo': 'nuevo_pedido', 'data': {'id': 'PED2', 'cliente': 'Luis'}}
+INFO:__main__:Evento SSE recibido: producto_actualizado
+INFO:__main__:[UI] Actualizando precio: {'id': 'P3', 'precio': 300}
+INFO:__main__:[AUDITORIA] Evento registrado: {'timestamp': '2026-04-12T22:51:29.740795', 'tipo': 'producto_actualizado', 'data': {'id': 'P3', 'precio': 300}}
+INFO:__main__:Evento SSE recibido: stock_critico
+WARNING:__main__:[ALERTA] Stock crítico: {'producto': 'Azúcar', 'stock': 3}
+INFO:__main__:[AUDITORIA] Evento registrado: {'timestamp': '2026-04-12T22:51:30.741776', 'tipo': 'stock_critico', 'data': {'producto': 'Azúcar', 'stock': 3}}
+INFO:__main__:Evento SSE recibido: nuevo_pedido
+INFO:__main__:[AUDITORIA] Evento registrado: {'timestamp': '2026-04-12T22:51:31.744331', 'tipo': 'nuevo_pedido', 'data': {'id': 'PED3', 'cliente': 'Maria'}}
+INFO:__main__:Evento SSE recibido: producto_actualizado
+INFO:__main__:[UI] Actualizando precio: {'id': 'P4', 'precio': 400}
+INFO:__main__:[AUDITORIA] Evento registrado: {'timestamp': '2026-04-12T22:51:32.746254', 'tipo': 'producto_actualizado', 'data': {'id': 'P4', 'precio': 400}}
+
+INFO:__main__:Receptor detenido

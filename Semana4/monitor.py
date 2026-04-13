@@ -1,118 +1,124 @@
-"""
-Monitor de Inventario - EcoMarket
-ServicioPolling con polling adaptativo usando ETag.
-
-Trade-off del polling:
-El polling permite consultar periódicamente una API para detectar cambios en los datos.
-Si el intervalo es muy corto, puede generar demasiadas solicitudes innecesarias.
-
-El uso de ETag permite que el cliente pregunte al servidor si los datos han cambiado
-sin tener que descargar toda la información nuevamente. Si los datos no cambiaron,
-el servidor responde con 304 Not Modified y no envía el contenido completo.
-
-Esto reduce el consumo de red y mejora la eficiencia del monitoreo del inventario.
-"""
-
 import asyncio
-import aiohttp
-from datetime import datetime
+import logging
+from typing import List, Dict, Any
+from abc import ABC, abstractmethod
+import random
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+#OBSERVER
+class Observador(ABC):
+    @abstractmethod
+    async def actualizar(self, datos: Dict[str, Any]) -> None:
+        pass
 
 
 class Observable:
     def __init__(self):
-        self._observadores = []
+        self._observadores: List[Observador] = []
 
-    def suscribir(self, funcion):
-        self._observadores.append(funcion)
+    def suscribir(self, obs: Observador):
+        self._observadores.append(obs)
 
-    def notificar(self, datos):
+    async def notificar(self, datos: Dict[str, Any]):
         for obs in self._observadores:
-            obs(datos)
+            try:
+                await obs.actualizar(datos)
+            except Exception as e:
+                logger.error(f"Error en observador: {e}")
 
 
-class ServicioPolling(Observable):
-    def __init__(self, url):
-        super().__init__()
-        self.url = url
+#SERVICIO DE POLLING
+class ServicioPolling:
+    def __init__(self):
         self.etag = None
-        self.intervalo = 5
-        self._activo = False
-        self.max_intervalo = 60
+        self.backoff = 1
 
-    async def _consultar(self, session):
-        headers = {}
+    async def consultar_api(self):
+        """
+        Simula una API con ETag.
+        """
+        await asyncio.sleep(1)
 
-        if self.etag:
-            headers["If-None-Match"] = self.etag
+        nuevo_etag = random.choice(["A", "B", "C"])
 
-        try:
-            async with session.get(self.url, headers=headers, timeout=10) as resp:
+        if nuevo_etag == self.etag:
+            return 304, None, self.etag
 
-                if resp.status == 200:
-                    datos = await resp.json()
+        self.etag = nuevo_etag
+        data = {
+            "producto": "Arroz",
+            "stock": random.randint(1, 10)
+        }
 
-                    self.etag = resp.headers.get("ETag")
+        return 200, data, self.etag
 
-                    print(f"{datetime.now()} | 200 OK | intervalo={self.intervalo}s")
 
-                    self.notificar(datos)
+# MONITOR
+class MonitorInventario(Observable):
+    def __init__(self):
+        super().__init__()
+        self.servicio = ServicioPolling()
+        self.ejecutando = True
 
-                    self.intervalo = 5
+    async def iniciar(self):
+        while self.ejecutando:
+            try:
+                status, data, etag = await self.servicio.consultar_api()
 
-                elif resp.status == 304:
-                    print(f"{datetime.now()} | 304 Not Modified | intervalo={self.intervalo}s")
+                if status == 200:
+                    logger.info(f"Cambio detectado: {data}")
+                    await self.notificar(data)
+                    self.servicio.backoff = 1
 
-                    self.intervalo = min(self.intervalo * 2, self.max_intervalo)
+                elif status == 304:
+                    logger.info("Sin cambios")
+                    self.servicio.backoff = min(self.servicio.backoff * 2, 10)
 
-                else:
-                    print(f"{datetime.now()} | Error HTTP {resp.status}")
+                await asyncio.sleep(self.servicio.backoff)
 
-        except Exception as e:
-            print(f"{datetime.now()} | Error: {e}")
-
-    async def iniciar(self, ciclos=5):
-        self._activo = True
-
-        async with aiohttp.ClientSession() as session:
-            contador = 0
-
-            while self._activo and contador < ciclos:
-                await self._consultar(session)
-                await asyncio.sleep(self.intervalo)
-                contador += 1
+            except Exception as e:
+                logger.error(f"Error en polling: {e}")
 
     def detener(self):
-        self._activo = False
+        self.ejecutando = False
 
 
-# Observadores (funciones independientes)
 
-def observador_ui(productos):
-    print("Productos recibidos:", len(productos))
-
-
-def observador_stock(productos):
-    for p in productos:
-        if "stock" in p and p["stock"] == 0:
-            print(f"⚠ Producto agotado: {p['name']}")
+# OBSERVADORES
+class UIObservador(Observador):
+    async def actualizar(self, datos):
+        logger.info(f"[UI] Mostrando datos: {datos}")
 
 
-def observador_error(datos):
-    pass
+class AlertaObservador(Observador):
+    async def actualizar(self, datos):
+        if datos["stock"] <= 3:
+            logger.warning(f"[ALERTA] Stock bajo: {datos}")
 
 
+class LogObservador(Observador):
+    async def actualizar(self, datos):
+        logger.info(f"[LOG] Registro: {datos}")
+
+
+
+# MAIN
 async def main():
-    url = "https://jsonplaceholder.typicode.com/posts"
+    monitor = MonitorInventario()
 
-    monitor = ServicioPolling(url)
+    monitor.suscribir(UIObservador())
+    monitor.suscribir(AlertaObservador())
+    monitor.suscribir(LogObservador())
 
-    monitor.suscribir(observador_ui)
-    monitor.suscribir(observador_stock)
-    monitor.suscribir(observador_error)
+    tarea = asyncio.create_task(monitor.iniciar())
 
-    await monitor.iniciar(ciclos=5)
+    await asyncio.sleep(10)
 
     monitor.detener()
+    await tarea
 
 
 if __name__ == "__main__":
